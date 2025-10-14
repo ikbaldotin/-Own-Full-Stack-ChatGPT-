@@ -7,7 +7,10 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import { assets } from "../public/assets";
 import "../public/prism.css";
 import Loading from "./pages/Loading";
+import { useAppContext } from "./context/AppContext";
+import Login from "./pages/Login";
 const App = () => {
+  const { user } = useAppContext();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { pathname } = useLocation();
   if (pathname === "/loading") return <Loading />;
@@ -20,16 +23,22 @@ const App = () => {
           onClick={() => setIsMenuOpen(true)}
         />
       )}
-      <div className="dark:bg-gradient-to-b from-[#242124] to-[#000000] data:text-white">
-        <div className="flex h-screen w-screen">
-          <Sidevar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
-          <Routes>
-            <Route path="/" element={<Chatbox />} />
-            <Route path="/credits" element={<Credits />} />
-            <Route path="/community" element={<Community />} />
-          </Routes>
+      {user ? (
+        <div className="dark:bg-gradient-to-b from-[#242124] to-[#000000] data:text-white">
+          <div className="flex h-screen w-screen">
+            <Sidevar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
+            <Routes>
+              <Route path="/" element={<Chatbox />} />
+              <Route path="/credits" element={<Credits />} />
+              <Route path="/community" element={<Community />} />
+            </Routes>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="flex items-center justify-center h-screen bg-gradient-to-b from-[#242124] to-[#000000]">
+          <Login />
+        </div>
+      )}
     </>
   );
 };
