@@ -3,7 +3,7 @@ import { useAppContext } from "../context/AppContext";
 import { assets } from "../../public/assets";
 import moment from "moment";
 const Sidebar = ({ isMenuOpen, setIsMenuOpen }) => {
-  const { chats, setSelectedChat, theme, setTheme, user, navigate } =
+  const { chats, setSelectChat, theme, setTheme, user, navigate } =
     useAppContext();
   const [search, setSearch] = useState("");
 
@@ -47,7 +47,7 @@ const Sidebar = ({ isMenuOpen, setIsMenuOpen }) => {
             <div
               onClick={() => {
                 navigate("/");
-                setSelectedChat(chat);
+                setSelectChat(chat);
                 setIsMenuOpen(false);
               }}
               key={chat._id}
