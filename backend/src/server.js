@@ -11,7 +11,9 @@ const app = express()
 const port = process.env.PORT
 connectDb()
 app.use(express.json())
-app.use(cors())
+app.use(cors(
+
+))
 app.use("/api/user", UserRoutes)
 app.use("/api/chat", chatRoutes)
 app.use("/api/message", messageRoute)

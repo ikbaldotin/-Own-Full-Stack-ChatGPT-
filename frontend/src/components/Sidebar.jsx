@@ -2,11 +2,50 @@ import React, { useState } from "react";
 import { useAppContext } from "../context/AppContext";
 import { assets } from "../../public/assets";
 import moment from "moment";
+import toast from "react-hot-toast";
 const Sidebar = ({ isMenuOpen, setIsMenuOpen }) => {
-  const { chats, setSelectChat, theme, setTheme, user, navigate } =
-    useAppContext();
+  const {
+    chats,
+    setSelectChat,
+    theme,
+    setTheme,
+    user,
+    navigate,
+    createNewChat,
+    axios,
+    setChats,
+    fetchUserChats,
+    setToken,
+    token,
+  } = useAppContext();
   const [search, setSearch] = useState("");
+  const logout = async () => {
+    localStorage.removeItem("token");
+    setToken(null);
+    toast.success("Logged out successfully");
+  };
+  const deleteChat = async (e, chatId) => {
+    try {
+      e.stopPropagation();
+      const confirm = window.confirm(
+        "Are you sure you want to delete this chat?"
+      );
+      if (!confirm) return;
+      const { data } = await axios.post(
+        "/api/chat/delete",
+        { chatId },
+        { headers: { Authorization: token } }
+      );
+      if (data.success) {
+        setChats((pre) => pre.filter((chat) => chat._id !== chatId));
 
+        await fetchUserChats();
+        toast.success(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
   return (
     <div
       className={`flex flex-col h-screen min-w-72 p-5 dark:bg-gradient-to-b from-[#242424]/30 to-[#000000]/30 border-r border-[#80609F]/30 backdrop-blur-xl transition-all duration-500 max-md:absolute left-0 top-0 z-10 ${
@@ -20,7 +59,10 @@ const Sidebar = ({ isMenuOpen, setIsMenuOpen }) => {
         className="w-full max-w-48"
       />
       {/* New Chat Button */}
-      <button className="flex justify-center items-center w-full py-2 mt-10 text-white bg-gradient-to-r from-[#A456F7] to-[#3DB1F6] text-sm rounded-md cursor-pointer">
+      <button
+        onClick={createNewChat}
+        className="flex justify-center items-center w-full py-2 mt-10 text-white bg-gradient-to-r from-[#A456F7] to-[#3DB1F6] text-sm rounded-md cursor-pointer"
+      >
         <span className="mr-2 text-xl">+</span>New Chat
       </button>
       {/* Search Conversation */}
@@ -63,7 +105,14 @@ const Sidebar = ({ isMenuOpen, setIsMenuOpen }) => {
                   {moment(chat.updatedAt).fromNow()}
                 </p>
               </div>
-              <img
+              <imgn
+                onClick={(e) =>
+                  toast.promise(deleteChat(e, chat._id), {
+                    loading: "Deleting...",
+                    success: "Chat deleted successfully",
+                    error: "Failed to delete chat",
+                  })
+                }
                 src={assets.bin_icon}
                 className="hidden group-hover:block w-4 cursor-pointer not-dark:invert"
                 alt=""
@@ -132,8 +181,10 @@ const Sidebar = ({ isMenuOpen, setIsMenuOpen }) => {
         </p>
         {user && (
           <img
+            onClick={logout}
             src={assets.logout_icon}
-            className="h-5 cursor-pointer hidden not-dark:invert group-hover:block"
+            className="h-5 cursor-pointer hidden dark:block group-hover:block not-dark:invert"
+            alt="logout"
           />
         )}
       </div>

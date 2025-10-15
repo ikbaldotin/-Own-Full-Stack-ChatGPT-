@@ -32,7 +32,12 @@ export const login = async (req, res) => {
         if (!token) {
             return res.status(500).json({ message: "Could not create token" })
         }
-        res.status(200).json({ message: "User login successfully", user, token })
+        res.status(200).json({
+            success: true,   // ✅ Required
+            message: "User login successfully",
+            user,
+            token
+        })
     } catch (error) {
         res.status(500).json({ message: "Internal server error " })
     }
@@ -42,7 +47,7 @@ export const getUser = async (req, res) => {
         const user = req.user
         res.status(200).json({ success: true, user })
     } catch (error) {
-        res.status(500).json({ message: "Internal server error" })
+        res.status(500).json({ success: false, message: error.message })
     }
 
 }
