@@ -1,4 +1,4 @@
-import Transition from "../models/Transition";
+import Transition from "../models/Transition.js";
 import Stripe from 'stripe';
 const plans = [
     {
@@ -30,7 +30,7 @@ export const getPlans = async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 }
-const stripe = new Stripe(process.env.Secret_key)
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 export const purchasePlans = async (req, res) => {
     try {
         const { planId } = req.body;
@@ -46,6 +46,7 @@ export const purchasePlans = async (req, res) => {
             credits: plan.credits,
             isPaid: false
         })
+        const { original } = req.headers
         const session = await stripe.checkout.sessions.create({
             line_items: [{
                 price_data: {
@@ -58,12 +59,15 @@ export const purchasePlans = async (req, res) => {
                 quantity: 1
             }],
             mode: 'payment',
-            success_url:,
-            cancel_url:,
-            metadata: ,
+            success_url: `${original}/loading`,
+            cancel_url: `${original}`,
+            metadata: {
+                transitionId: transition._id.toString(), appId: "mygpt"
+            },
             expires_at: Math.floor(Date.now() / 1000) + 15 * 60
         })
+        res.status(200).json({ success: true, sessionUrl: session.url });
     } catch (error) {
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ success: false, message: error.message });
     }
 }
