@@ -1,9 +1,7 @@
 import bcrypt from "bcryptjs"
-import User from "../models/User"
+import User from "../models/User.js"
 import jwt from "jsonwebtoken"
-const generatedToken = async (id) => {
-    return jwt.sign({ id }, process.env.JWT_SEC, { expiresIn: "7d" })
-}
+
 export const register = async (req, res) => {
     const { name, email, password } = req.body
     try {
@@ -12,8 +10,8 @@ export const register = async (req, res) => {
             return res.status(400).json({ message: "User already exits" })
         }
         const user = await User.create({ name, email, password })
-        const token = generatedToken(user._id)
-        res.json({ message: "User register successfully", token })
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SEC, { expiresIn: '7d' })
+        res.json({ message: "User register successfully", user, token })
     } catch (error) {
         res.status(500).json({ message: "Internal server error" })
     }
@@ -23,16 +21,19 @@ export const login = async (req, res) => {
     try {
         const user = await User.findOne({ email })
         if (!user) {
-            return res.status(400).json({ message: "Invalid credentials" })
+            return res.status(400).json({ message: "Invalid credentials " })
         }
         const isMatch = await bcrypt.compare(password, user.password)
         if (!isMatch) {
-            return res.status(400).json({ message: "Invalid credentials" })
+            return res.status(400).json({ message: "Invalid credentials ", })
         }
-        const token = generatedToken(user._id)
-        res.status(200).json({ message: "User login successfully", token })
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SEC, { expiresIn: '7d' })
+        if (!token) {
+            return res.status(500).json({ message: "Could not create token" })
+        }
+        res.status(200).json({ message: "User login successfully", user, token })
     } catch (error) {
-        res.status(500).json({ message: "Internal server error" })
+        res.status(500).json({ message: "Internal server error " })
     }
 }
 export const getUser = async (req, res) => {
